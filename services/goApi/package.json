@@ -2,5 +2,8 @@
   "name": "@repo/go-api",
   "version": "0.1.0",
   "private": true,
-  "scripts": {}
+  "scripts": {
+    "go:dev": "GO_ENV=dev go run main.go",
+    "go:migrate": "GO_ENV=dev go run migrate/migrate.go"
+  }
 }
