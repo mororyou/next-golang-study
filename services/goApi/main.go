@@ -12,12 +12,17 @@ func main() {
 	db := db.NewDB()
 
 	userRepository := repository.NewUserRepository(db)
-	userUsecase := usecase.NewUserUsecase(userRepository)
-	userController := controller.NewUserController(userUsecase)
+	taskRepository := repository.NewTaskRepository(db)
 
-	e := router.NewRouter(userController)
+	userUsecase := usecase.NewUserUsecase(userRepository)
+	taskUsecase := usecase.NewTaskUsecase(taskRepository)
+
+	userController := controller.NewUserController(userUsecase)
+	taskController := controller.NewTaskController(taskUsecase)
+
+	e := router.NewRouter(userController, taskController)
 
 	e.Logger.Fatal(
-		e.Start(":8080"),
+		e.Start(":8081"),
 	)
 }
