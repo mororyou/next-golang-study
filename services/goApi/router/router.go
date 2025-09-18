@@ -2,21 +2,57 @@ package router
 
 import (
 	"go-rest-api/controller"
+	"net/http"
 	"os"
 
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func NewRouter(uc controller.IUserController, tc controller.ITaskController) *echo.Echo {
 	e := echo.New()
 
-	auth := e.Group("/auth")
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{
+			"http://localhost:3000",
+			os.Getenv("FE_URL"),
+		},
+		AllowHeaders: []string{
+			echo.HeaderOrigin,
+			echo.HeaderContentType,
+			echo.HeaderAccept,
+			echo.HeaderAccessControlAllowHeaders,
+			echo.HeaderXCSRFToken,
+		},
+		AllowMethods: []string{
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodDelete,
+		},
+		AllowCredentials: true,
+	}))
+
+	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+		CookiePath:     "/",
+		CookieDomain:   os.Getenv("API_DOMAIN"),
+		CookieHTTPOnly: true,
+		CookieSameSite: http.SameSiteNoneMode,
+		// CookieSameSite: http.SameSiteDefaultMode,
+		// CookieMaxAge:   0,
+	}))
+
+	v1 := e.Group("/v1")
+
+	v1.GET("/csrf", uc.CSRFToken)
+
+	auth := v1.Group("/auth")
 	auth.POST("/signup", uc.SignUp)
 	auth.POST("/login", uc.Login)
 	auth.POST("/logout", uc.LogOut)
 
-	t := e.Group("/tasks")
+	t := v1.Group("/tasks")
 	t.Use(echojwt.WithConfig(echojwt.Config{
 		SigningKey:  []byte(os.Getenv("JWT_SECRET")),
 		TokenLookup: "cookie:token",
