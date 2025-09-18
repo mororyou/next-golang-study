@@ -1,8 +1,8 @@
 package router
 
 import (
+	"go-rest-api/config"
 	"go-rest-api/controller"
-	"net/http"
 	"os"
 
 	echojwt "github.com/labstack/echo-jwt/v4"
@@ -13,35 +13,9 @@ import (
 func NewRouter(uc controller.IUserController, tc controller.ITaskController) *echo.Echo {
 	e := echo.New()
 
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{
-			"http://localhost:3000",
-			os.Getenv("FE_URL"),
-		},
-		AllowHeaders: []string{
-			echo.HeaderOrigin,
-			echo.HeaderContentType,
-			echo.HeaderAccept,
-			echo.HeaderAccessControlAllowHeaders,
-			echo.HeaderXCSRFToken,
-		},
-		AllowMethods: []string{
-			http.MethodGet,
-			http.MethodPost,
-			http.MethodPut,
-			http.MethodDelete,
-		},
-		AllowCredentials: true,
-	}))
+	e.Use(middleware.CORSWithConfig(config.Middleware()))
 
-	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-		CookiePath:     "/",
-		CookieDomain:   os.Getenv("API_DOMAIN"),
-		CookieHTTPOnly: true,
-		CookieSameSite: http.SameSiteNoneMode,
-		// CookieSameSite: http.SameSiteDefaultMode,
-		// CookieMaxAge:   0,
-	}))
+	e.Use(middleware.CSRFWithConfig(config.CSRFConfig()))
 
 	v1 := e.Group("/v1")
 
